@@ -1,0 +1,13 @@
+DOs
+1. File names of spool excel PVRs should be the exact as the names found in the schemes folder.
+
+2.Update the "Active Securities" excel sheet with the details af new issued securities for the reporting month.
+
+3.Check if there are no "BONDS" under the SEPERATOR column.
+
+4.Add all dollar converted cash values to the cash of spooled pvr sheets.
+
+5.Update reporting date on the formula sheet (Double click on "3002_Output" after opening the queries and connections tab under Data. Under the Applied Steps section, search for "Reporting Date" tab and replace the date under the quotations with the current end of month date)
+
+
+DONTs
