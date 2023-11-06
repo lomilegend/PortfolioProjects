@@ -3,5 +3,5 @@ This program is an automation of the two regualatory reports on traded securitie
 ### STEPS ###
 Downloaded csv files from T24 treasury software are to places in the  folder named "schemes".
 
-After open files named "Dataset_0301" and Dataset_0302", under the data ribbon click on the refresh tab to apply scritped steps to the files in the "schemes" folder so as to generate a report in pivot table format which matches the provided template from the regulator.
+After open files named 0301" and "0302", to copy the M language script. To paste ,under the data ribbon, open a new query and apply scritped steps to the files saved under a folder. (filepath should be the same as Source filepath in the script)  so as to generate a report in pivot table format which matches the provided template from the regulator.
 
