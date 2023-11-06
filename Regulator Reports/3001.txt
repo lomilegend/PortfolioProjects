@@ -1,6 +1,6 @@
 OLD*****
 let
-    Source = Folder.Files("P:\DEPARTMENT\CUSTODIAN\Custodian\NPRA\REPORTS\auto\schemes"),
+    Source = Folder.Files("C:\Desktop\schemes"),
     #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
     #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
     #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
@@ -36,7 +36,7 @@ in
 PATF CODE
 
 let
-    Source = Folder.Files("P:\DEPARTMENT\CUSTODIAN\Custodian\OPERATIONS\T24\EXCEL REPORTS\2023\Q2 2023\APR\PATF"),
+    Source = Folder.Files("C:\Desktop\schemes"),
     #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
     #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
     #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
@@ -70,7 +70,7 @@ NEW*****
 *** CHANGES DUE NEW INT-ONLY SECURITIES****8
 
 let
-    Source = Folder.Files("P:\DEPARTMENT\CUSTODIAN\Custodian\NPRA\REPORTS\auto\schemes"),
+    Source = Folder.Files("C:\Desktop\schemes"),
     #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
     #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
     #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
