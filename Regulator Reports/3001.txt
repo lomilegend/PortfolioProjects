@@ -1,0 +1,104 @@
+OLD*****
+let
+    Source = Folder.Files("P:\DEPARTMENT\CUSTODIAN\Custodian\NPRA\REPORTS\auto\schemes"),
+    #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
+    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
+    #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+    #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File"}),
+    #"Expanded Transform File" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File", {"Txn Id", "Description", "Principal", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", " Market Value ", "SEPERATOR", "CONSIDERATION", "Sec Price", "GAIN", "MAT.DATE", "Accrue.Amt", "BUY.SELL", "ISSUER", "COUNTT", "Market Value"}, {"Txn Id", "Description", "Principal", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", " Market Value ", "SEPERATOR", "CONSIDERATION", "Sec Price", "GAIN", "MAT.DATE", "Accrue.Amt", "BUY.SELL", "ISSUER", "COUNTT", "Market Value"}),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Expanded Transform File",{{"Principal", type number}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type2",{"COUNTT", "BUY.SELL"}),
+    #"BONDS Tweak" = Table.AddColumn(#"Removed Columns", "Separator", each if [SEPERATOR] = "BONDS" then "Government Notes & Bonds" else [SEPERATOR]),
+    #"Renamed Columns" = Table.RenameColumns(#"BONDS Tweak",{{"Source.Name", "Scheme"}}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"Txn Id", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", "CONSIDERATION", "Sec Price", "Accrue.Amt"}),
+    #"Filtered Rows" = Table.SelectRows(#"Removed Columns1", each true),
+    #"Merged Columns" = Table.CombineColumns(Table.TransformColumnTypes(#"Filtered Rows", {{"Market Value", type text}}, "en-GB"),{" Market Value ", "Market Value"},Combiner.CombineTextByDelimiter("", QuoteStyle.None),"Market Value.1"),
+    #"Removed Columns2" = Table.RemoveColumns(#"Merged Columns",{"MAT.DATE"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns2",{{"Market Value.1", "Market Value"}}),
+    #"Merged Columns1" = Table.CombineColumns(#"Renamed Columns2",{"Description", "ISSUER"},Combiner.CombineTextByDelimiter(" ", QuoteStyle.None),"Merged"),
+    #"Reordered Columns" = Table.ReorderColumns(#"Merged Columns1",{"Scheme", "Merged", "Principal", "SEPERATOR", "GAIN", "Market Value"}),
+    #"Renamed Columns3" = Table.RenameColumns(#"Reordered Columns",{{"Merged", "Description"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns3",{{"Market Value", Currency.Type}}),
+    #"Inserted Date" = Table.AddColumn(#"Changed Type", "Date", each Date.From([GAIN]), type date),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Inserted Date",{{"Principal", Currency.Type}}),
+    #"Grouped Rows" = Table.Group(#"Changed Type1", {"Date", "Description", "Separator", "Scheme"}, {{"Market Value", each List.Sum([Market Value]), type nullable number}, {"Principal", each List.Sum([Principal]), type nullable number}}),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Grouped Rows",{"Scheme", "Description", "Principal", "Separator", "Date", "Market Value"}),
+    #"Renamed Columns4" = Table.RenameColumns(#"Reordered Columns1",{{"Date", "Maturity Date"}}),
+    #"EntityName" = Table.AddColumn(#"Renamed Columns4", "EntityName", each if [Scheme] = "AXIS PENSION.csv" then "AXIS PENSION PLAN" else if [Scheme] = "BEST.csv" then "BEST PROVIDENT FUND SCHEME" else if [Scheme] = "BROADVIEW.csv" then "BROADVIEW MASTER TRUST FUND" else if [Scheme] = "CEDAR PENSION.csv" then "CEDAR PENSION SCHEME" else if [Scheme] = "CEDAR PROVIDENT.csv" then "CEDAR PROVIDENT FUND" else if [Scheme] = "DAAKYE.csv" then "DAAKYE OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "ENIDASO.csv" then "PENSIONS ALLIANCE ENIDASO SCHEME" else if [Scheme] = "FGR BOGOSO.csv" then "FGR BOGOSO PRESTEA OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "FIESTA.csv" then "FIESTA ROYALE  OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "GIMPA.csv" then "GIMPA OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "GNAT.csv" then "GNAT PROVIDENT FUND SCHEME" else if [Scheme] = "GOLDEN STAR WASSA.csv" then "GOLDEN STAR (WASSA) OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "KIMPTON.csv" then "KIMPTON MASTER PROVIDENT FUND SCHEME" else if [Scheme] = "LARP.csv" then "LIVE AFTER RETIREMENT" else if [Scheme] = "MERIT OPS.csv" then "FIRST MERIT OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "MERIT PPS.csv" then "FIRST MERIT PERSONAL PENSION SCHEME" else if [Scheme] = "PENTRUST.csv" then "PENTRUST TIER 3 PROVIDENT MASTER TRUST SCHEME" else if [Scheme] = "QFTL.csv" then "QFTL PROVIDENT FUND SCHEME" else if [Scheme] = "RBG.csv" then "REPUBLIC MASTER TRUST PROVIDENT PENSION SCHEME" else if [Scheme] = "UPMT.csv" then "UNIVERSAL PENSIONS MASTER TRUST SCHEME" else if [Scheme] = "UPT PENSION.csv" then "UPT PENSION SCHEME" else if [Scheme] = "PATF-ADB.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-GNPC.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-ZENITH.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-MAIN.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-GRA.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-SEM 1.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-SEM 2.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-INVESTCORP.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "UPT-PROVIDENT.csv" then "UPT PROVIDENT FUND SCHEME" else null),
+    #"Merged Queries" = Table.NestedJoin(#"EntityName", {"EntityName"}, zenith_schemes, {"EntityName"}, "zenith_schemes", JoinKind.LeftOuter),
+    #"Expanded zenith_schemes" = Table.ExpandTableColumn(#"Merged Queries", "zenith_schemes", {"Entity_ID"}, {"zenith_schemes.Entity_ID"}),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Expanded zenith_schemes",{{"Principal", type number}}),
+    #"Replaced Value" = Table.ReplaceValue(#"Changed Type3","Treasury Bills","Government Notes & Bonds",Replacer.ReplaceText,{"Separator"}),
+    #"Filtered Rows1" = Table.SelectRows(#"Replaced Value", each true)
+in
+    #"Filtered Rows1"
+
+PATF CODE
+
+let
+    Source = Folder.Files("P:\DEPARTMENT\CUSTODIAN\Custodian\OPERATIONS\T24\EXCEL REPORTS\2023\Q2 2023\APR\PATF"),
+    #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
+    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
+    #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+    #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File"}),
+    #"Expanded Transform File" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File", {"Txn Id", "Description", "Principal", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", " Market Value ", "SEPERATOR", "CONSIDERATION", "Sec Price", "GAIN", "MAT.DATE", "Accrue.Amt", "BUY.SELL", "ISSUER", "COUNTT", "Market Value"}, {"Txn Id", "Description", "Principal", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", " Market Value ", "SEPERATOR", "CONSIDERATION", "Sec Price", "GAIN", "MAT.DATE", "Accrue.Amt", "BUY.SELL", "ISSUER", "COUNTT", "Market Value"}),
+    #"Removed Columns" = Table.RemoveColumns(#"Expanded Transform File",{"COUNTT", "BUY.SELL"}),
+    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Source.Name", "Scheme"}}),
+    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns",".csv","",Replacer.ReplaceText,{"Scheme"}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Replaced Value",{"Txn Id", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", "CONSIDERATION", "Sec Price", "Accrue.Amt"}),
+    #"Filtered Rows" = Table.SelectRows(#"Removed Columns1", each true),
+    #"Merged Columns" = Table.CombineColumns(Table.TransformColumnTypes(#"Filtered Rows", {{"Market Value", type text}}, "en-GB"),{" Market Value ", "Market Value"},Combiner.CombineTextByDelimiter("", QuoteStyle.None),"Market Value.1"),
+    #"Removed Columns2" = Table.RemoveColumns(#"Merged Columns",{"MAT.DATE"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns2",{{"Market Value.1", "Market Value"}}),
+    #"Merged Columns1" = Table.CombineColumns(#"Renamed Columns2",{"Description", "ISSUER"},Combiner.CombineTextByDelimiter(" ", QuoteStyle.None),"Merged"),
+    #"Reordered Columns" = Table.ReorderColumns(#"Merged Columns1",{"Scheme", "Merged", "Principal", "SEPERATOR", "GAIN", "Market Value"}),
+    #"Renamed Columns3" = Table.RenameColumns(#"Reordered Columns",{{"Merged", "Description"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns3",{{"Market Value", Currency.Type}}),
+    #"Inserted Date" = Table.AddColumn(#"Changed Type", "Date", each Date.From([GAIN]), type date),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Inserted Date",{{"Principal", Currency.Type}}),
+    #"Split Column by Delimiter" = Table.SplitColumn(#"Changed Type1", "Scheme", Splitter.SplitTextByDelimiter("-", QuoteStyle.Csv), {"Scheme.1", "Scheme.2"}),
+    #"Renamed Columns5" = Table.RenameColumns(#"Split Column by Delimiter",{{"Scheme.1", "Scheme"}}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Renamed Columns5","PATF","PENSIONS ALLIANCE TRUST FUND",Replacer.ReplaceText,{"Scheme"}),
+    #"Grouped Rows" = Table.Group(#"Replaced Value1", {"Date", "Description", "SEPERATOR", "Scheme"}, {{"Market Value", each List.Sum([Market Value]), type nullable number}, {"Principal", each List.Sum([Principal]), type text}}),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Grouped Rows",{"Scheme", "Description", "Principal", "SEPERATOR", "Date", "Market Value"}),
+    #"Renamed Columns4" = Table.RenameColumns(#"Reordered Columns1",{{"Date", "Maturity Date"}})
+in
+    #"Renamed Columns4"
+
+
+NEW*****
+*** CHANGES DUE NEW INT-ONLY SECURITIES****8
+
+let
+    Source = Folder.Files("P:\DEPARTMENT\CUSTODIAN\Custodian\NPRA\REPORTS\auto\schemes"),
+    #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
+    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
+    #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+    #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File"}),
+    #"Expanded Transform File" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File", {"Txn Id", "Description", "Principal", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", " Market Value ", "SEPERATOR", "CONSIDERATION", "Sec Price", "GAIN", "MAT.DATE", "Accrue.Amt", "BUY.SELL", "ISSUER", "COUNTT", "Market Value"}, {"Txn Id", "Description", "Principal", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", " Market Value ", "SEPERATOR", "CONSIDERATION", "Sec Price", "GAIN", "MAT.DATE", "Accrue.Amt", "BUY.SELL", "ISSUER", "COUNTT", "Market Value"}),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Expanded Transform File",{{"Principal", type number}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type2",{"COUNTT", "BUY.SELL"}),
+    #"BONDS Tweak" = Table.AddColumn(#"Removed Columns", "Separator", each if [SEPERATOR] = "BONDS" then "Government Notes & Bonds" else if [SEPERATOR] = "Interest Only Bonds" then "Government Notes & Bonds" else [SEPERATOR]),
+    #"Renamed Columns" = Table.RenameColumns(#"BONDS Tweak",{{"Source.Name", "Scheme"}}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"Txn Id", "Purchase Cost", "Interst Rate", "Settlement Date", "Fund Manager", "ACC", "CONSIDERATION", "Sec Price", "Accrue.Amt"}),
+    #"Filtered Rows" = Table.SelectRows(#"Removed Columns1", each true),
+    #"Merged Columns" = Table.CombineColumns(Table.TransformColumnTypes(#"Filtered Rows", {{"Market Value", type text}}, "en-GB"),{" Market Value ", "Market Value"},Combiner.CombineTextByDelimiter("", QuoteStyle.None),"Market Value.1"),
+    #"Removed Columns2" = Table.RemoveColumns(#"Merged Columns",{"MAT.DATE"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns2",{{"Market Value.1", "Market Value"}}),
+    #"Merged Columns1" = Table.CombineColumns(#"Renamed Columns2",{"Description", "ISSUER"},Combiner.CombineTextByDelimiter(" ", QuoteStyle.None),"Merged"),
+    #"Reordered Columns" = Table.ReorderColumns(#"Merged Columns1",{"Scheme", "Merged", "Principal", "SEPERATOR", "GAIN", "Market Value"}),
+    #"Renamed Columns3" = Table.RenameColumns(#"Reordered Columns",{{"Merged", "Description"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns3",{{"Market Value", Currency.Type}}),
+    #"Inserted Date" = Table.AddColumn(#"Changed Type", "Date", each Date.From([GAIN]), type date),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Inserted Date",{{"Principal", Currency.Type}}),
+    #"Grouped Rows" = Table.Group(#"Changed Type1", {"Date", "Description", "Separator", "Scheme"}, {{"Market Value", each List.Sum([Market Value]), type nullable number}, {"Principal", each List.Sum([Principal]), type nullable number}}),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Grouped Rows",{"Scheme", "Description", "Principal", "Separator", "Date", "Market Value"}),
+    #"Renamed Columns4" = Table.RenameColumns(#"Reordered Columns1",{{"Date", "Maturity Date"}}),
+    #"EntityName" = Table.AddColumn(#"Renamed Columns4", "EntityName", each if [Scheme] = "AXIS PENSION.csv" then "AXIS PENSION PLAN" else if [Scheme] = "BEST.csv" then "BEST PROVIDENT FUND SCHEME" else if [Scheme] = "BROADVIEW.csv" then "BROADVIEW MASTER TRUST FUND" else if [Scheme] = "CEDAR PENSION.csv" then "CEDAR PENSION SCHEME" else if [Scheme] = "CEDAR PROVIDENT.csv" then "CEDAR PROVIDENT FUND" else if [Scheme] = "DAAKYE.csv" then "DAAKYE OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "ENIDASO.csv" then "PENSIONS ALLIANCE ENIDASO SCHEME" else if [Scheme] = "FGR BOGOSO.csv" then "FGR BOGOSO PRESTEA OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "FIESTA.csv" then "FIESTA ROYALE  OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "GIMPA.csv" then "GIMPA OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "GNAT.csv" then "GNAT PROVIDENT FUND SCHEME" else if [Scheme] = "GOLDEN STAR WASSA.csv" then "GOLDEN STAR (WASSA) OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "KIMPTON.csv" then "KIMPTON MASTER PROVIDENT FUND SCHEME" else if [Scheme] = "LARP.csv" then "LIVE AFTER RETIREMENT" else if [Scheme] = "MERIT OPS.csv" then "FIRST MERIT OCCUPATIONAL PENSION SCHEME" else if [Scheme] = "MERIT PPS.csv" then "FIRST MERIT PERSONAL PENSION SCHEME" else if [Scheme] = "PENTRUST.csv" then "PENTRUST TIER 2 OCCUPATIONAL MASTER TRUST SCHEME" else if [Scheme] = "QFTL.csv" then "QFTL PROVIDENT FUND SCHEME" else if [Scheme] = "RBG.csv" then "REPUBLIC MASTER TRUST PROVIDENT PENSION SCHEME" else if [Scheme] = "UPMT.csv" then "UNIVERSAL PENSIONS MASTER TRUST SCHEME" else if [Scheme] = "UPT PENSION.csv" then "UPT PENSION SCHEME" else if [Scheme] = "PATF-ADB.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-GNPC.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-ZENITH.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-MAIN.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-GRA.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-SEM 1.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-SEM 2.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "PATF-INVESTCORP.csv" then "PENSIONS ALLIANCE TRUST FUND" else if [Scheme] = "UPT-PROVIDENT.csv" then "UPT PROVIDENT FUND SCHEME" else null),
+    #"Merged Queries" = Table.NestedJoin(#"EntityName", {"EntityName"}, zenith_schemes, {"EntityName"}, "zenith_schemes", JoinKind.LeftOuter),
+    #"Expanded zenith_schemes" = Table.ExpandTableColumn(#"Merged Queries", "zenith_schemes", {"Entity_ID"}, {"zenith_schemes.Entity_ID"}),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Expanded zenith_schemes",{{"Principal", type number}}),
+    #"Replaced Value" = Table.ReplaceValue(#"Changed Type3","Treasury Bills","Government Notes & Bonds",Replacer.ReplaceText,{"Separator"})
+in
+    #"Replaced Value"
+
